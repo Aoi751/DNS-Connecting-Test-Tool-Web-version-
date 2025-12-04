@@ -64,24 +64,23 @@
         </div>
         
         <h1 id="mainTitle" class="text-3xl sm:text-4xl font-bold text-gray-800 mb-4 border-b-2 pb-2">
-            DNS制限テストツール (IPv4/IPv6/H3対応)
+            <!-- Content set by JS -->
         </h1>
         <p id="descriptionText" class="text-gray-600 mb-8">
-            お使いのネットワークで、DNS over HTTPS (DoH) の各種プロトコルが利用可能か、**IPv4とIPv6接続の両方**でテストします。
+            <!-- Content set by JS, with HTML for bold emphasis -->
         </p>
 
         <!-- DoH Test Section -->
         <section class="mb-8 border border-gray-200 rounded-lg p-4 bg-blue-50">
             <h2 id="dohTitle" class="text-2xl font-semibold text-blue-800 mb-3 flex items-center">
-                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944c6.83-2.924 10.75-2.924 12 0a11.955 11.955 0 01-11.618 17.06c-1.573.189-3.155.289-4.755.289-4.721 0-8.665-1.921-12-5.187m2.382-7.854l4.004 4.004m0 0l4.004-4.004"></path></svg>
-                DNS over HTTPS (DoH) プロトコル別テスト
+                <!-- Content set by JS -->
             </h2>
-            <p id="dohDescription" class="text-gray-700 mb-4">
-                プロバイダ名が緑色になれば、そのプロバイダの**少なくとも1つのエンドポイントでIPv4/IPv6のいずれかが成功**しています。
+            <p id="dohDescription" class="text-gray-600 mb-4">
+                <!-- Content set by JS, with HTML for bold emphasis -->
             </p>
             
             <button id="runAllDohTest" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition duration-150 shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 active:bg-blue-800 mb-4">
-                全テスト実行 (H2 & H3)
+                <!-- Content set by JS -->
             </button>
 
             <!-- Summary and Toggle Section -->
@@ -104,29 +103,26 @@
         <!-- Other DNS Methods Explanation -->
         <section class="mb-8 p-4 border border-gray-200 rounded-lg bg-yellow-50">
             <h2 id="otherDnsTitle" class="text-2xl font-semibold text-yellow-800 mb-3 flex items-center">
-                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                その他のDNS制限について
+                <!-- Content set by JS -->
             </h2>
             
             <div class="space-y-4 text-gray-700">
                 <p id="dns53Text">
-                    <strong class="font-bold">通常のDNS (ポート53):</strong>
-                    ブラウザから直接テストすることはできませんが、外部DNSを設定した機器で名前解決を試すことで確認できます。
+                    <!-- Content set by JS, with <strong> tags -->
                 </p>
                 <p id="dotText">
-                    <strong class="font-bold">DNS over TLS (DoT - ポート853):</strong>
-                    ブラウザのセキュリティ制限により、Webページから直接接続可否をテストすることは技術的に不可能です。
+                    <!-- Content set by JS, with <strong> tags -->
                 </p>
                 <p class="p-3 bg-white border border-yellow-200 rounded-md">
-                    <strong id="hintTitle" class="text-yellow-700">【ヒント】</strong>
-                    <span id="hintContent">ポート53/853の制限を確認したい場合は、PCやスマートフォンでVPNサービスやカスタムDNS設定を有効にし、ウェブサイトが正常に表示されるか（名前解決ができるか）を確認するのが最も確実な方法です。</span>
+                    <strong id="hintTitle" class="text-yellow-700"></strong>
+                    <span id="hintContent"></span>
                 </p>
             </div>
         </section>
 
         <footer class="text-center mt-8 pt-4 border-t border-gray-200">
             <p id="footerText" class="text-sm text-gray-500">
-                これはクライアント側のJavaScriptテストであり、ネットワークの完全な状態を示すものではありません。
+                <!-- Content set by JS -->
             </p>
         </footer>
     </div>
@@ -137,11 +133,14 @@
             ja: {
                 appTitle: "DNS制限テストツール (IPv4/IPv6/H3対応)",
                 mainTitle: "DNS制限テストツール (IPv4/IPv6/H3対応)",
-                descriptionText: "お使いのネットワークで、DNS over HTTPS (DoH) の各種プロトコルが利用可能か、**IPv4とIPv6接続の両方**でテストします。",
+                // HTMLタグを含むため、そのままの文字列として定義
+                descriptionText: "お使いのネットワークで、DNS over HTTPS (DoH) の各種プロトコルが利用可能か、<strong class=\"font-bold text-gray-800\">IPv4とIPv6接続の両方</strong>でテストします。",
                 dohTitle: "DNS over HTTPS (DoH) プロトコル別テスト",
-                dohDescription: "プロバイダ名が緑色になれば、そのプロバイダの**少なくとも1つのエンドポイントでIPv4/IPv6のいずれかが成功**しています。",
+                // HTMLタグを含むため、そのままの文字列として定義
+                dohDescription: "プロバイダ名が緑色になれば、そのプロバイダの<strong class=\"font-bold text-gray-800\">少なくとも1つのエンドポイントでIPv4/IPv6のいずれかが成功</strong>しています。",
                 runAllButton: "全テスト実行 (H2 & H3)",
                 otherDnsTitle: "その他のDNS制限について",
+                // 既にstrongタグを使用している部分は維持
                 dns53Title: "通常のDNS (ポート53):",
                 dns53Content: "ブラウザから直接テストすることはできませんが、外部DNSを設定した機器で名前解決を試すことで確認できます。",
                 dotTitle: "DNS over TLS (DoT - ポート853):",
@@ -174,9 +173,11 @@
             en: {
                 appTitle: "DNS Restriction Test Tool (IPv4/IPv6/H3)",
                 mainTitle: "DNS Restriction Test Tool (IPv4/IPv6/H3)",
-                descriptionText: "Test whether various DNS over HTTPS (DoH) protocols are available on your network for **both IPv4 and IPv6 connectivity**.",
+                // HTMLタグを含むため、そのままの文字列として定義
+                descriptionText: "Test whether various DNS over HTTPS (DoH) protocols are available on your network for <strong class=\"font-bold text-gray-800\">both IPv4 and IPv6 connectivity</strong>.",
                 dohTitle: "DNS over HTTPS (DoH) Protocol Tests",
-                dohDescription: "If the provider name is green, **at least one endpoint was successful in either IPv4 or IPv6**.",
+                // HTMLタグを含むため、そのままの文字列として定義
+                dohDescription: "If the provider name is green, <strong class=\"font-bold text-gray-800\">at least one endpoint was successful in either IPv4 or IPv6</strong>.",
                 runAllButton: "Run All Tests (H2 & H3)",
                 otherDnsTitle: "About Other DNS Restrictions",
                 dns53Title: "Traditional DNS (Port 53):",
@@ -240,8 +241,9 @@
             { 
                 protocolId: 'h3', 
                 protocolName: 'DoH/HTTP/3 (QUIC)',
-                descriptionJa: 'HTTP/3 (QUIC) プロトコルを使用したDoH接続テストです。**成功はブラウザとサーバー間のH3ネゴシエーションに依存します。**',
-                descriptionEn: 'DoH connection test using HTTP/3 (QUIC) protocol. **Success depends on H3 negotiation between the browser and server.**',
+                // 文字列リテラル内でHTMLタグを使用し、`undefined`を防ぐ
+                descriptionJa: 'HTTP/3 (QUIC) プロトコルを使用したDoH接続テストです。<strong class="font-bold text-gray-800">成功はブラウザとサーバー間のH3ネゴシエーションに依存します。</strong>',
+                descriptionEn: 'DoH connection test using HTTP/3 (QUIC) protocol. <strong class="font-bold text-gray-800">Success depends on H3 negotiation between the browser and server.</strong>',
                 color: 'purple-600'
             }
         ];
@@ -264,6 +266,8 @@
             const resultsContainer = document.getElementById('testResultsContainer');
             const langButtons = document.querySelectorAll('.lang-btn');
             const toggleDetailsButton = document.getElementById('toggleDetailsButton');
+            const dns53TextEl = document.getElementById('dns53Text');
+            const dotTextEl = document.getElementById('dotText');
 
             // グループ化された全てのテスト設定を生成
             function generateTestGroups() {
@@ -304,16 +308,21 @@
                 const text = LANGUAGES[lang];
                 document.getElementById('appTitle').textContent = text.appTitle;
                 document.getElementById('mainTitle').textContent = text.mainTitle;
-                document.getElementById('descriptionText').textContent = text.descriptionText;
+                
+                // HTMLコンテンツを含むためinnerHTMLを使用
+                document.getElementById('descriptionText').innerHTML = text.descriptionText;
                 
                 document.getElementById('dohTitle').innerHTML = `<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944c6.83-2.924 10.75-2.924 12 0a11.955 11.955 0 01-11.618 17.06c-1.573.189-3.155.289-4.755.289-4.721 0-8.665-1.921-12-5.187m2.382-7.854l4.004 4.004m0 0l4.004-4.004"></path></svg>${text.dohTitle}`;
-                document.getElementById('dohDescription').textContent = text.dohDescription;
+                
+                // HTMLコンテンツを含むためinnerHTMLを使用
+                document.getElementById('dohDescription').innerHTML = text.dohDescription;
                 runAllDohTestButton.textContent = text.runAllButton;
                 
                 document.getElementById('otherDnsTitle').innerHTML = `<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>${text.otherDnsTitle}`;
                 
-                document.getElementById('dns53Text').innerHTML = `<strong class="font-bold">${text.dns53Title}</strong> ${text.dns53Content}`;
-                document.getElementById('dotText').innerHTML = `<strong class="font-bold">${text.dotTitle}</strong> ${text.dotContent}`;
+                // strongタグを含むためinnerHTMLを使用
+                dns53TextEl.innerHTML = `<strong class="font-bold">${text.dns53Title}</strong> ${text.dns53Content}`;
+                dotTextEl.innerHTML = `<strong class="font-bold">${text.dotTitle}</strong> ${text.dotContent}`;
                 document.getElementById('hintTitle').textContent = text.hintTitle;
                 document.getElementById('hintContent').textContent = text.hintContent;
                 document.getElementById('footerText').textContent = text.footerText;
@@ -339,15 +348,17 @@
                 resultsContainer.innerHTML = ''; // 初期化
 
                 PROTOCOL_CONFIGS.forEach(pConfig => {
+                    // グループ内のプロトコル説明を取得 (修正箇所)
+                    const protocolDescription = currentLang === 'ja' ? pConfig.descriptionJa : pConfig.descriptionEn;
+
                     const protocolGroups = DOH_TEST_GROUPS.filter(g => g.protocolId === pConfig.protocolId);
                     
                     // プロトコルセクションヘッダー
-                    // NOTE: プロトコルカラーの動的なtailwindクラス生成を避けるため、静的なクラス名を使用
                     const headerClass = pConfig.protocolId === 'h3' ? 'text-purple-600 border-purple-600' : 'text-blue-600 border-blue-600';
                     const headerHtml = `
                         <div class="border-b ${headerClass} pb-2 mb-4">
                             <h3 class="text-xl font-bold ${pConfig.protocolId === 'h3' ? 'text-purple-800' : 'text-blue-800'}">${pConfig.protocolName}</h3>
-                            <p class="text-sm text-gray-600 mt-1">${currentLang === 'ja' ? pConfig.descriptionJa : pConfig.descriptionEn}</p>
+                            <p class="text-sm text-gray-600 mt-1">${protocolDescription}</p>
                         </div>
                     `;
                     resultsContainer.insertAdjacentHTML('beforeend', headerHtml);
@@ -562,8 +573,10 @@
                 let allTestsSuccess = true;
                 let anySuccess = false;
                 let totalTests = 0;
-                let successCount = 0;
-
+                
+                // Groupのテストが完了したことをマーク
+                let completedTests = 0;
+                
                 results.forEach(res => {
                     const epStatus = dohTestStatuses[groupId].endpointStatuses[res.id];
                     const statusKey = `${res.type}Status`;
@@ -571,7 +584,7 @@
                     totalTests++;
 
                     if (res.status.result === 'success') {
-                        successCount++;
+                        completedTests++;
                         anySuccess = true;
                     } else {
                         allTestsSuccess = false;
