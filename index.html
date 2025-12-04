@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="appTitle">DNS制限テスト</title>
+    <title id="appTitle">DNS制限テストツール (IPv4/IPv6対応)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -17,6 +17,7 @@
             font-weight: 600;
             display: inline-block;
             font-size: 0.875rem; /* text-sm */
+            white-space: nowrap;
         }
         .success {
             background-color: #d1fae5; /* Tailwind green-100 */
@@ -26,9 +27,13 @@
             background-color: #fee2e2; /* Tailwind red-100 */
             color: #991b1b; /* Tailwind red-800 */
         }
-        .pending {
+        .partial {
             background-color: #fef3c7; /* Tailwind yellow-100 */
             color: #92400e; /* Tailwind yellow-800 */
+        }
+        .pending {
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+            color: #374151; /* Tailwind gray-700 */
         }
         .loading-spinner {
             border: 4px solid #f3f3f3;
@@ -42,7 +47,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* グループテストボタンのスタイル */
         .group-test-btn {
             @apply px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-150 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300;
         }
@@ -60,21 +64,20 @@
         </div>
         
         <h1 id="mainTitle" class="text-3xl sm:text-4xl font-bold text-gray-800 mb-4 border-b-2 pb-2">
-            DNS制限テストツール
+            DNS制限テストツール (IPv4/IPv6対応)
         </h1>
         <p id="descriptionText" class="text-gray-600 mb-8">
-            お使いのネットワーク（大学のLANなど）で、各種DNS解決方法が利用可能かテストします。
+            お使いのネットワーク（大学のLANなど）で、各種DNS解決方法が利用可能か、**IPv4とIPv6接続の両方**でテストします。
         </p>
 
         <!-- DoH Test Section -->
         <section class="mb-8 border border-gray-200 rounded-lg p-4 bg-blue-50">
             <h2 id="dohTitle" class="text-2xl font-semibold text-blue-800 mb-3 flex items-center">
                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944c6.83-2.924 10.75-2.924 12 0a11.955 11.955 0 01-11.618 17.06c-1.573.189-3.155.289-4.755.289-4.721 0-8.665-1.921-12-5.187m2.382-7.854l4.004 4.004m0 0l4.004-4.004"></path></svg>
-                DNS over HTTPS (DoH) テスト (複数プロバイダ)
+                DNS over HTTPS (DoH) テスト (IPv4 / IPv6)
             </h2>
             <p id="dohDescription" class="text-gray-700 mb-4">
-                ブラウザの標準的なHTTPS通信(ポート443)を利用して、外部DoHサーバーに接続できるかをテストします。
-                プロバイダ名が緑色になれば、そのプロバイダの少なくとも1つのエンドポイントが利用可能です。
+                プロバイダ名が緑色になれば、そのプロバイダの**少なくとも1つのエンドポイントでIPv4/IPv6のいずれかが成功**しています。
             </p>
             
             <button id="runAllDohTest" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition duration-150 shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 active:bg-blue-800 mb-4">
@@ -133,11 +136,11 @@
         // 言語設定の定数
         const LANGUAGES = {
             ja: {
-                appTitle: "DNS制限テストツール",
-                mainTitle: "DNS制限テストツール",
-                descriptionText: "お使いのネットワーク（大学のLANなど）で、各種DNS解決方法が利用可能かテストします。",
-                dohTitle: "DNS over HTTPS (DoH) テスト (複数プロバイダ)",
-                dohDescription: "ブラウザの標準的なHTTPS通信(ポート443)を利用して、外部DoHサーバーに接続できるかをテストします。プロバイダ名が緑色になれば、そのプロバイダの少なくとも1つのエンドポイントが利用可能です。",
+                appTitle: "DNS制限テストツール (IPv4/IPv6対応)",
+                mainTitle: "DNS制限テストツール (IPv4/IPv6対応)",
+                descriptionText: "お使いのネットワーク（大学のLANなど）で、各種DNS解決方法が利用可能か、**IPv4とIPv6接続の両方**でテストします。",
+                dohTitle: "DNS over HTTPS (DoH) テスト (IPv4 / IPv6)",
+                dohDescription: "プロバイダ名が緑色になれば、そのプロバイダの**少なくとも1つのエンドポイントでIPv4/IPv6のいずれかが成功**しています。",
                 runAllButton: "全テスト実行",
                 otherDnsTitle: "その他のDNS制限について",
                 dns53Title: "通常のDNS (ポート53):",
@@ -150,26 +153,29 @@
                 status: {
                     pending: "未実行",
                     testing: "テスト中...",
-                    available: "利用可能",
-                    unavailable: "利用不可",
+                    available: "成功",
+                    unavailable: "失敗",
+                    partial: "一部成功",
                     runSingle: "テスト実行",
                     showDetails: "詳細を表示",
                     hideDetails: "詳細を非表示",
                     groupStatusPartial: "一部利用可能",
                     groupStatusTesting: "グループテスト中...",
-                    endpointTesting: "外部DoHサーバーにHTTPSリクエストを送信中...",
-                    endpointSuccess: (duration, status) => `接続成功。レスポンスタイム: ${duration}ms。DNS応答ステータス: ${status}`,
-                    endpointErrorHttp: (status) => `サーバーに到達しましたが、HTTPエラーが発生しました。ステータス: ${status}`,
-                    endpointErrorDns: (status) => `応答あり（${status}）ですが、DNSデータとして認識できませんでした。`,
-                    endpointErrorNetwork: (error, duration) => `接続失敗（ネットワークエラー）。DoH通信がブロックされている可能性が高いです。エラー: ${error}。時間: ${duration}ms。`
+                    connectionType: {
+                        ipv4: "IPv4接続",
+                        ipv6: "IPv6接続"
+                    },
+                    endpointTesting: (type) => `${type}のDoHクエリを送信中...`,
+                    endpointSuccess: (duration, status) => `接続成功。応答時間: ${duration}ms。DNS応答: ${status}`,
+                    endpointErrorNetwork: (error, duration) => `接続失敗。エラー: ${error}。時間: ${duration}ms。`
                 }
             },
             en: {
-                appTitle: "DNS Restriction Test Tool",
-                mainTitle: "DNS Restriction Test Tool",
-                descriptionText: "Test whether various DNS resolution methods are available on your network (e.g., university LAN).",
-                dohTitle: "DNS over HTTPS (DoH) Test (Multiple Providers)",
-                dohDescription: "Tests connectivity to external DoH servers using standard HTTPS (Port 443). If the provider name is green, at least one endpoint of that provider is available.",
+                appTitle: "DNS Restriction Test Tool (IPv4/IPv6)",
+                mainTitle: "DNS Restriction Test Tool (IPv4/IPv6)",
+                descriptionText: "Test whether various DNS resolution methods are available on your network (e.g., university LAN) for **both IPv4 and IPv6 connectivity**.",
+                dohTitle: "DNS over HTTPS (DoH) Test (IPv4 / IPv6)",
+                dohDescription: "If the provider name is green, **at least one endpoint was successful in either IPv4 or IPv6**.",
                 runAllButton: "Run All Tests",
                 otherDnsTitle: "About Other DNS Restrictions",
                 dns53Title: "Traditional DNS (Port 53):",
@@ -182,18 +188,21 @@
                 status: {
                     pending: "Pending",
                     testing: "Connecting...",
-                    available: "Available",
-                    unavailable: "Unavailable",
+                    available: "Success",
+                    unavailable: "Failed",
+                    partial: "Partial Success",
                     runSingle: "Run Test",
                     showDetails: "Show Details",
                     hideDetails: "Hide Details",
                     groupStatusPartial: "Partially Available",
                     groupStatusTesting: "Group Testing...",
-                    endpointTesting: "Sending DoH query...",
-                    endpointSuccess: (duration, status) => `Connection successful. Response time: ${duration}ms. DNS response status: ${status}`,
-                    endpointErrorHttp: (status) => `Server reached, but HTTP error occurred. Status: ${status}`,
-                    endpointErrorDns: (status) => `Response received (${status}), but not recognized as DNS data.`,
-                    endpointErrorNetwork: (error, duration) => `Connection failed (Network Error). DoH communication is likely blocked. Error: ${error}. Time: ${duration}ms.`
+                    connectionType: {
+                        ipv4: "IPv4 Connection",
+                        ipv6: "IPv6 Connection"
+                    },
+                    endpointTesting: (type) => `Sending DoH query for ${type}...`,
+                    endpointSuccess: (duration, status) => `Connection successful. Response time: ${duration}ms. DNS response: ${status}`,
+                    endpointErrorNetwork: (error, duration) => `Connection failed. Error: ${error}. Time: ${duration}ms.`
                 }
             }
         };
@@ -201,49 +210,58 @@
         let currentLang = 'ja';
 
         // DoHテストに使用するプロバイダグループのリスト
+        // URLにはクエリタイプは含めず、ロジック側で付与します
         const DOH_PROVIDERS = [
+            // {url} は "https://resolver.com/dns-query" の形式
             {
                 id: 'google',
                 name: "Google Public DNS",
-                endpoints: [{ id: 'google_default', url: "https://dns.google/resolve?name=example.com&type=A", label: "Default" }]
+                endpoints: [{ id: 'google_default', url: "https://dns.google/resolve", label: "Default" }]
             },
             {
                 id: 'cloudflare',
                 name: "Cloudflare DNS",
-                endpoints: [{ id: 'cloudflare_default', url: "https://cloudflare-dns.com/dns-query?name=example.com&type=A", label: "Default" }]
+                endpoints: [{ id: 'cloudflare_default', url: "https://cloudflare-dns.com/dns-query", label: "Default" }]
             },
             {
                 id: 'quad9',
                 name: "Quad9 DNS",
-                endpoints: [{ id: 'quad9_default', url: "https://dns.quad9.net/dns-query?name=example.com&type=A", label: "Default" }]
+                endpoints: [{ id: 'quad9_default', url: "https://dns.quad9.net/dns-query", label: "Default" }]
             },
             {
                 id: 'adguard',
                 name: "AdGuard DNS",
                 endpoints: [
-                    { id: 'adguard_default', url: "https://dns.adguard.com/dns-query?name=example.com&type=A", label: "Default" },
-                    { id: 'adguard_family', url: "https://dns-family.adguard.com/dns-query?name=example.com&type=A", label: "Family Protection" }
+                    { id: 'adguard_default', url: "https://dns.adguard.com/dns-query", label: "Default" },
+                    { id: 'adguard_family', url: "https://dns-family.adguard.com/dns-query", label: "Family Protection" }
                 ]
             },
             {
                 id: 'cleanbrowsing',
                 name: "CleanBrowsing",
-                endpoints: [{ id: 'cleanbrowsing_family', url: "https://doh.cleanbrowsing.org/doh/family/?name=example.com&type=A", label: "Family" }]
+                endpoints: [{ id: 'cleanbrowsing_family', url: "https://doh.cleanbrowsing.org/doh/family/", label: "Family" }]
             },
             {
                 id: 'nextdns',
                 name: "NextDNS",
-                endpoints: [{ id: 'nextdns_general', url: "https://dns.nextdns.io/dns-query?name=example.com&type=A", label: "General" }]
+                endpoints: [{ id: 'nextdns_general', url: "https://dns.nextdns.io/dns-query", label: "General" }]
             },
             {
                 id: 'controld',
                 name: "ControlD",
-                endpoints: [{ id: 'control_d_default', url: "https://freedns.controld.com/p1?name=example.com&type=A", label: "Default" }]
+                endpoints: [{ id: 'control_d_default', url: "https://freedns.controld.com/p1", label: "Default" }]
             }
         ];
         
         // DoHテストのステータスを追跡するためのグローバル変数 (グループIDがキー)
         let dohTestStatuses = {}; 
+        
+        // テストに使用するドメインとクエリタイプ
+        const TEST_DOMAIN = 'example.com'; 
+        const QUERY_TYPES = {
+            ipv4: { name: 'A', text: 'IPv4接続' },
+            ipv6: { name: 'AAAA', text: 'IPv6接続' }
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             const runAllDohTestButton = document.getElementById('runAllDohTest');
@@ -255,9 +273,12 @@
             function initializeStatuses() {
                 dohTestStatuses = DOH_PROVIDERS.reduce((acc, group) => {
                     acc[group.id] = {
-                        result: 'pending', // 'pending', 'testing', 'success', 'failure', 'partial'
+                        result: 'pending', // 'pending', 'testing', 'success', 'failure', 'partial' (グループ内全体)
                         endpointStatuses: group.endpoints.reduce((eAcc, ep) => {
-                            eAcc[ep.id] = { result: 'pending', duration: null, status: null, error: null };
+                            eAcc[ep.id] = { 
+                                ipv4Status: { result: 'pending', duration: null, status: null, error: null },
+                                ipv6Status: { result: 'pending', duration: null, status: null, error: null },
+                            };
                             return eAcc;
                         }, {})
                     };
@@ -272,12 +293,10 @@
                 document.getElementById('mainTitle').textContent = text.mainTitle;
                 document.getElementById('descriptionText').textContent = text.descriptionText;
                 
-                // SVGを含むdohTitleの更新
                 document.getElementById('dohTitle').innerHTML = `<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944c6.83-2.924 10.75-2.924 12 0a11.955 11.955 0 01-11.618 17.06c-1.573.189-3.155.289-4.755.289-4.721 0-8.665-1.921-12-5.187m2.382-7.854l4.004 4.004m0 0l4.004-4.004"></path></svg>${text.dohTitle}`;
                 document.getElementById('dohDescription').textContent = text.dohDescription;
                 runAllDohTestButton.textContent = text.runAllButton;
                 
-                // SVGを含むotherDnsTitleの更新
                 document.getElementById('otherDnsTitle').innerHTML = `<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>${text.otherDnsTitle}`;
                 
                 document.getElementById('dns53Text').innerHTML = `<strong class="font-bold">${text.dns53Title}</strong> ${text.dns53Content}`;
@@ -286,7 +305,6 @@
                 document.getElementById('hintContent').textContent = text.hintContent;
                 document.getElementById('footerText').textContent = text.footerText;
 
-                // 言語ボタンのアクティブ状態を更新
                 langButtons.forEach(button => {
                     if (button.dataset.lang === lang) {
                         button.classList.remove('bg-gray-200', 'text-gray-700');
@@ -297,9 +315,8 @@
                     }
                 });
                 
-                // 結果表示エリアを再初期化して、新しい言語のテキストを反映させる
                 initializeResults();
-                updateSummary(); // サマリーテキストも更新
+                updateSummary(); 
             }
 
             // グループ化された初期表示用のHTMLを生成
@@ -311,7 +328,7 @@
                     
                     let statusClass = 'pending';
                     let statusText = text.status.pending;
-                    let detailColor = '';
+                    let detailColor = 'border-gray-200';
                     
                     if (status === 'testing') {
                         statusClass = 'pending flex items-center';
@@ -322,7 +339,7 @@
                         statusText = text.status.available;
                         detailColor = 'border-green-300';
                     } else if (status === 'partial') {
-                        statusClass = 'pending'; // Partial is yellow-ish
+                        statusClass = 'partial'; 
                         statusText = text.status.groupStatusPartial;
                         detailColor = 'border-yellow-300';
                     } else if (status === 'failure') {
@@ -331,30 +348,10 @@
                         detailColor = 'border-red-300';
                     }
 
-                    // エンドポイントの詳細リスト（初期状態では非表示）
+                    // エンドポイントの詳細リスト (初期状態では非表示)
                     const endpointDetailsHtml = group.endpoints.map(ep => {
-                        const epStatus = groupStatus.endpointStatuses[ep.id] || { result: 'pending', error: null };
-                        let epDetailStatusClass = 'text-gray-500';
-                        let epDetailStatusText = text.status.pending;
-                        
-                        if (epStatus.result === 'success') {
-                            epDetailStatusClass = 'text-green-600';
-                            epDetailStatusText = text.status.endpointSuccess(epStatus.duration, epStatus.status);
-                        } else if (epStatus.result === 'failure') {
-                            epDetailStatusClass = 'text-red-600';
-                            epDetailStatusText = text.status.endpointErrorNetwork(epStatus.error || 'N/A', epStatus.duration);
-                        } else if (epStatus.result === 'testing') {
-                            epDetailStatusClass = 'text-yellow-600';
-                            epDetailStatusText = text.status.endpointTesting;
-                        }
-
-                        return `
-                            <div class="mt-2 text-xs border-l-2 pl-2 border-gray-300">
-                                <span class="font-semibold text-gray-700">${ep.label}:</span>
-                                <span class="${epDetailStatusClass} break-all">${epDetailStatusText}</span>
-                                <p class="text-gray-500 italic break-all">${ep.url}</p>
-                            </div>
-                        `;
+                        const epStatus = groupStatus.endpointStatuses[ep.id];
+                        return generateEndpointDetailsHtml(ep, epStatus, text);
                     }).join('');
 
                     // グループごとのカード
@@ -386,54 +383,93 @@
                     }
                 });
             }
-            
+
+            // エンドポイントの詳細HTMLを生成するヘルパー関数
+            function generateEndpointDetailsHtml(endpoint, epStatus, text) {
+                if (!epStatus) epStatus = { ipv4Status: { result: 'pending' }, ipv6Status: { result: 'pending' } };
+
+                // IPv4/IPv6のステータス表示を生成
+                function generateIpStatus(type, status) {
+                    let statusClass = 'pending';
+                    let statusText = text.status.pending;
+                    
+                    if (status.result === 'testing') {
+                        statusClass = 'partial';
+                        statusText = text.status.endpointTesting(text.status.connectionType[type]);
+                    } else if (status.result === 'success') {
+                        statusClass = 'success';
+                        statusText = text.status.endpointSuccess(status.duration, status.status);
+                    } else if (status.result === 'failure') {
+                        statusClass = 'failure';
+                        const error = status.error || 'Network Error/Blocked';
+                        statusText = text.status.endpointErrorNetwork(error, status.duration || 'N/A');
+                    }
+
+                    return `
+                        <div class="flex items-start mt-1">
+                            <span class="text-xs font-semibold w-24 flex-shrink-0">${text.status.connectionType[type]}:</span>
+                            <span class="test-status ${statusClass} text-xs ml-2 break-all flex-grow-0">${statusText}</span>
+                        </div>
+                    `;
+                }
+
+                const ipv4Html = generateIpStatus('ipv4', epStatus.ipv4Status);
+                const ipv6Html = generateIpStatus('ipv6', epStatus.ipv6Status);
+
+                return `
+                    <div id="endpoint-detail-${endpoint.id}" class="mt-3 p-3 bg-white border border-gray-200 rounded-md">
+                        <p class="font-bold text-sm text-gray-800 mb-2">${endpoint.label} (${endpoint.url})</p>
+                        ${ipv4Html}
+                        ${ipv6Html}
+                    </div>
+                `;
+            }
+
             /**
-             * 特定の単一エンドポイントのテストを実行し、その結果を返します。
+             * 特定のIPクエリタイプ(ipv4/ipv6)でのテストを実行し、その結果を返します。
              */
-            async function testDohEndpoint(endpoint, groupId) {
-                const epStatus = { result: 'pending', duration: null, status: null, error: null };
+            async function testDohConnectivity(endpoint, queryType, groupId, endpointId) {
+                const typeName = QUERY_TYPES[queryType].name;
+                const fullUrl = `${endpoint.url}?name=${TEST_DOMAIN}&type=${typeName}`;
+                
+                const epStatusKey = `${queryType}Status`;
                 const startTime = performance.now();
                 
+                // テスト中の状態を即座に反映
+                dohTestStatuses[groupId].endpointStatuses[endpointId][epStatusKey].result = 'testing';
+                updateEndpointDetails(groupId); 
+
                 try {
-                    const response = await fetch(endpoint.url, { 
+                    const response = await fetch(fullUrl, { 
                         method: 'GET',
                         cache: 'no-store',
                         credentials: 'omit'
                     });
                     
-                    epStatus.duration = (performance.now() - startTime).toFixed(2);
-
+                    const duration = (performance.now() - startTime).toFixed(2);
+                    
                     if (response.ok) {
                         const json = await response.json();
                         
-                        // DNS応答の検証
+                        // DNS応答の検証 (Statusフィールドの有無)
                         if (json && typeof json.Status === 'number') {
-                            epStatus.result = 'success'; 
-                            epStatus.status = json.Status;
+                            return { result: 'success', duration, status: json.Status, error: null };
                         } else {
-                            epStatus.result = 'failure';
-                            epStatus.status = response.status;
-                            epStatus.error = 'Invalid DNS Response Format';
+                            // HTTP OKだがDNS応答として不正
+                            return { result: 'failure', duration, status: response.status, error: 'Invalid DNS Response' };
                         }
                     } else {
                         // 4xx, 5xxなどのHTTPエラー
-                        epStatus.result = 'failure';
-                        epStatus.status = response.status;
-                        epStatus.error = 'HTTP Error';
+                        return { result: 'failure', duration, status: response.status, error: 'HTTP Error' };
                     }
 
                 } catch (error) {
                     // ネットワークレベルのエラー
-                    epStatus.duration = (performance.now() - startTime).toFixed(2);
-                    epStatus.result = 'failure';
-                    epStatus.error = error.message;
+                    const duration = (performance.now() - startTime).toFixed(2);
+                    return { result: 'failure', duration, status: null, error: error.message };
                 }
-
-                // グローバルステータスオブジェクトを更新
-                dohTestStatuses[groupId].endpointStatuses[endpoint.id] = epStatus;
-                return epStatus;
             }
-
+            
             /**
              * プロバイダグループ内の全てのテストを並列実行し、グループステータスを更新します。
              */
@@ -454,7 +490,7 @@
                 runAllDohTestButton.disabled = true;
                 groupStatusEl.innerHTML = `<span class="loading-spinner mr-2"></span>${text.status.groupStatusTesting}`;
                 groupStatusEl.className = 'test-status pending flex items-center';
-                groupCardEl.classList.remove('border-green-300', 'border-red-300');
+                groupCardEl.classList.remove('border-green-300', 'border-red-300', 'border-gray-200');
                 groupCardEl.classList.add('border-yellow-300');
                 updateSummary();
                 
@@ -462,34 +498,53 @@
                 updateEndpointDetails(groupId);
 
 
-                // 全てのエンドポイントテストを並列で実行
-                const testPromises = group.endpoints.map(ep => testDohEndpoint(ep, groupId));
+                // 全てのエンドポイントでIPv4/IPv6テストを並列で実行
+                const testPromises = group.endpoints.flatMap(ep => [
+                    testDohConnectivity(ep, 'ipv4', groupId, ep.id).then(res => ({ id: ep.id, type: 'ipv4', status: res })),
+                    testDohConnectivity(ep, 'ipv6', groupId, ep.id).then(res => ({ id: ep.id, type: 'ipv6', status: res }))
+                ]);
+                
                 const results = await Promise.all(testPromises);
 
-                // グループの最終ステータスを決定
-                const successCount = results.filter(r => r.result === 'success').length;
-                const totalCount = results.length;
+                // 結果をグローバルステータスに統合
+                let allEndpointsSuccess = true;
+                let anySuccess = false;
 
-                if (successCount === totalCount) {
-                    dohTestStatuses[groupId].result = 'success';
-                } else if (successCount > 0) {
-                    dohTestStatuses[groupId].result = 'partial';
+                results.forEach(res => {
+                    const epStatus = dohTestStatuses[groupId].endpointStatuses[res.id];
+                    const statusKey = `${res.type}Status`;
+                    epStatus[statusKey] = res.status;
+
+                    if (res.status.result !== 'success') {
+                        allEndpointsSuccess = false;
+                    }
+                    if (res.status.result === 'success') {
+                        anySuccess = true;
+                    }
+                });
+
+                // グループの最終ステータスを決定
+                let finalGroupResult;
+                if (allEndpointsSuccess) {
+                    finalGroupResult = 'success';
+                } else if (anySuccess) {
+                    finalGroupResult = 'partial';
                 } else {
-                    dohTestStatuses[groupId].result = 'failure';
+                    finalGroupResult = 'failure';
                 }
+                dohTestStatuses[groupId].result = finalGroupResult;
 
                 // 最終結果でUIを更新
-                const finalStatus = dohTestStatuses[groupId].result;
                 let statusClass = '';
                 let statusText = '';
                 let detailColor = '';
 
-                if (finalStatus === 'success') {
+                if (finalGroupResult === 'success') {
                     statusClass = 'success';
                     statusText = text.status.available;
                     detailColor = 'border-green-300';
-                } else if (finalStatus === 'partial') {
-                    statusClass = 'pending';
+                } else if (finalGroupResult === 'partial') {
+                    statusClass = 'partial';
                     statusText = text.status.groupStatusPartial;
                     detailColor = 'border-yellow-300';
                 } else { // failure
@@ -545,31 +600,11 @@
                 const detailsContainer = document.getElementById(`endpoint-details-${groupId}`);
 
                 if (!group || !detailsContainer) return;
-
+                
+                // エンドポイントの詳細HTMLを再生成
                 const endpointDetailsHtml = group.endpoints.map(ep => {
-                    const epStatus = groupStatus.endpointStatuses[ep.id] || { result: 'pending', error: null };
-                    let epDetailStatusClass = 'text-gray-500';
-                    let epDetailStatusText = text.status.pending;
-                    
-                    if (epStatus.result === 'testing') {
-                        epDetailStatusClass = 'text-yellow-600 flex items-center';
-                        epDetailStatusText = `<span class="loading-spinner mr-2"></span>${text.status.endpointTesting}`;
-                    } else if (epStatus.result === 'success') {
-                        epDetailStatusClass = 'text-green-600';
-                        epDetailStatusText = text.status.endpointSuccess(epStatus.duration, epStatus.status);
-                    } else if (epStatus.result === 'failure') {
-                        epDetailStatusClass = 'text-red-600';
-                        const error = epStatus.error || 'Network Error/Blocked';
-                        epDetailStatusText = text.status.endpointErrorNetwork(error, epStatus.duration || 'N/A');
-                    }
-
-                    return `
-                        <div class="mt-2 text-xs border-l-2 pl-2 border-gray-300">
-                            <span class="font-semibold text-gray-700">${ep.label}:</span>
-                            <span class="${epDetailStatusClass} break-all">${epDetailStatusText}</span>
-                            <p class="text-gray-500 italic break-all">${ep.url}</p>
-                        </div>
-                    `;
+                    const epStatus = groupStatus.endpointStatuses[ep.id];
+                    return generateEndpointDetailsHtml(ep, epStatus, text);
                 }).join('');
 
                 detailsContainer.innerHTML = `<p class="font-semibold text-sm text-gray-800 mb-1">エンドポイント詳細:</p>${endpointDetailsHtml}`;
@@ -606,7 +641,7 @@
                     </div>
                     <div class="flex flex-col items-center">
                         <span class="text-sm font-bold text-green-600">${counts.success}</span>
-                        <span class="text-xs text-green-600">成功</span>
+                        <span class="text-xs text-green-600">完全成功</span>
                     </div>
                     <div class="flex flex-col items-center">
                         <span class="text-sm font-bold text-yellow-600">${counts.partial}</span>
@@ -624,7 +659,7 @@
                 document.getElementById('statusSummary').innerHTML = summaryHtml;
                 
                 // トグルボタンを更新
-                const isHidden = resultsContainer.classList.contains('hidden');
+                const isHidden = document.getElementById(`endpoint-details-${DOH_PROVIDERS[0].id}`)?.classList.contains('hidden') || true;
                 
                 let buttonText;
                 if (isHidden) {
@@ -639,20 +674,16 @@
             /**
              * 詳細リストの表示・非表示を切り替えます。
              */
-            function toggleDetails() {
-                resultsContainer.classList.toggle('hidden');
-                
-                // 表示/非表示が切り替わったときに、詳細セクションの表示も連動させる
-                const isHidden = resultsContainer.classList.contains('hidden');
+            function toggleDetails(show) {
+                const isHidden = typeof show === 'boolean' ? !show : document.getElementById(`endpoint-details-${DOH_PROVIDERS[0].id}`)?.classList.contains('hidden') || true;
+
                 DOH_PROVIDERS.forEach(group => {
                     const detailsEl = document.getElementById(`endpoint-details-${group.id}`);
                     if (detailsEl) {
-                        // 全体が非表示なら詳細も非表示に
                         if (isHidden) {
-                            detailsEl.classList.add('hidden');
-                        } else {
-                            // 全体が表示なら、詳細セクションを再表示（デフォルトでは非表示）
                             detailsEl.classList.remove('hidden');
+                        } else {
+                            detailsEl.classList.add('hidden');
                         }
                     }
                 });
@@ -660,12 +691,9 @@
                 updateSummary(); // ボタンテキストを更新するために呼び出し
             }
             
-            // 初期の詳細リストは表示状態にし、エンドポイントの詳細パネルを非表示にする
+            // 初期の詳細リストは非表示にする
             function initialToggleSetup() {
-                resultsContainer.classList.remove('hidden'); // 詳細リストコンテナは最初から表示
-
-                // 各プロバイダの詳細パネルは隠しておく
-                DOH_PROVIDERS.forEach(group => {
+                 DOH_PROVIDERS.forEach(group => {
                     const detailsEl = document.getElementById(`endpoint-details-${group.id}`);
                     if (detailsEl) {
                         detailsEl.classList.add('hidden');
@@ -685,24 +713,10 @@
                 });
             });
 
-            // トグルボタンは、クリック時に各プロバイダの詳細表示も連動して切り替えます
+            // トグルボタンは、クリック時に各プロバイダの詳細表示を一斉に切り替える
             toggleDetailsButton.addEventListener('click', () => {
-                const isHidden = resultsContainer.classList.contains('hidden');
-                
-                DOH_PROVIDERS.forEach(group => {
-                    const detailsEl = document.getElementById(`endpoint-details-${group.id}`);
-                    if (detailsEl) {
-                         if (!isHidden) {
-                            // 全体を非表示にする前に、個々の詳細を非表示にする
-                            detailsEl.classList.add('hidden');
-                        } else {
-                            // 全体を表示する前に、個々の詳細を表示にする
-                            detailsEl.classList.remove('hidden');
-                        }
-                    }
-                });
-                
-                toggleDetails(); // 全体の表示/非表示を切り替える
+                const isCurrentlyHidden = document.getElementById(`endpoint-details-${DOH_PROVIDERS[0].id}`)?.classList.contains('hidden') || true;
+                toggleDetails(!isCurrentlyHidden);
             });
 
             runAllDohTestButton.addEventListener('click', runAllDohTests);
@@ -710,7 +724,7 @@
             // 初期化
             initializeStatuses();
             updateUI(currentLang);
-            initialToggleSetup(); // UI初期設定を再実行
+            initialToggleSetup(); 
         });
     </script>
 </body>
