@@ -165,9 +165,12 @@
                         ipv4: "IPv4接続",
                         ipv6: "IPv6接続"
                     },
-                    endpointTesting: (type) => `${type}のDoHクエリを送信中...`,
-                    endpointSuccess: (duration, status) => `接続成功。応答時間: ${duration}ms。DNS応答: ${status}`,
-                    endpointErrorNetwork: (error, duration) => `接続失敗。エラー: ${error}。時間: ${duration}ms。`
+                    endpointTesting: (type) => `${type}のDoHクエリを送信中`,
+                    endpointSuccess: (duration, status) => `接続成功 応答時間: ${duration}ms DNS応答: ${status}`,
+                    // ユーザーの要望に合わせてエラー表示を更新
+                    endpointErrorNetwork: (duration) => `接続失敗 (Network Error) 時間: ${duration}ms`,
+                    endpointErrorHttp: (status, duration) => `接続失敗 (HTTP Error: ${status}) 時間: ${duration}ms`,
+                    endpointErrorInvalidDns: (status, duration) => `接続失敗 (Invalid DNS Response) HTTP応答: ${status} 時間: ${duration}ms`
                 }
             },
             en: {
@@ -202,7 +205,10 @@
                     },
                     endpointTesting: (type) => `Sending DoH query for ${type}...`,
                     endpointSuccess: (duration, status) => `Connection successful. Response time: ${duration}ms. DNS response: ${status}`,
-                    endpointErrorNetwork: (error, duration) => `Connection failed. Error: ${error}. Time: ${duration}ms.`
+                    // ユーザーの要望に合わせてエラー表示を更新
+                    endpointErrorNetwork: (duration) => `Connection Failed (Network Error). Time: ${duration}ms`,
+                    endpointErrorHttp: (status, duration) => `Connection Failed (HTTP Error: ${status}). Time: ${duration}ms`,
+                    endpointErrorInvalidDns: (status, duration) => `Connection Failed (Invalid DNS Response). HTTP Status: ${status}. Time: ${duration}ms`
                 }
             }
         };
@@ -373,8 +379,18 @@
                         statusText = text.status.endpointSuccess(status.duration, status.status);
                     } else if (status.result === 'failure') {
                         statusClass = 'failure';
-                        const error = status.error || 'Network Error/Blocked';
-                        statusText = text.status.endpointErrorNetwork(error, status.duration || 'N/A');
+                        
+                        // 失敗原因に基づいたテキストを生成
+                        if (status.error === 'Network Error') {
+                            statusText = text.status.endpointErrorNetwork(status.duration || 'N/A');
+                        } else if (status.error === 'HTTP Error') {
+                            statusText = text.status.endpointErrorHttp(status.status, status.duration || 'N/A');
+                        } else if (status.error === 'Invalid DNS Response') {
+                            statusText = text.status.endpointErrorInvalidDns(status.status, status.duration || 'N/A');
+                        } else {
+                            // その他のエラー (念のため)
+                            statusText = text.status.endpointErrorNetwork(status.duration || 'N/A');
+                        }
                     }
 
                     return `
@@ -423,13 +439,18 @@
                     const duration = (performance.now() - startTime).toFixed(2);
                     
                     if (response.ok) {
-                        const json = await response.json();
-                        
-                        // DNS応答の検証 (Statusフィールドの有無)
-                        if (json && typeof json.Status === 'number') {
-                            return { result: 'success', duration, status: json.Status, error: null };
-                        } else {
-                            // HTTP OKだがDNS応答として不正
+                        try {
+                            const json = await response.json();
+                            
+                            // DNS応答の検証 (Statusフィールドの有無)
+                            if (json && typeof json.Status === 'number') {
+                                return { result: 'success', duration, status: json.Status, error: null };
+                            } else {
+                                // HTTP OKだがDNS応答として不正
+                                return { result: 'failure', duration, status: response.status, error: 'Invalid DNS Response' };
+                            }
+                        } catch (jsonError) {
+                             // JSON解析エラーが発生した場合
                             return { result: 'failure', duration, status: response.status, error: 'Invalid DNS Response' };
                         }
                     } else {
@@ -438,9 +459,9 @@
                     }
 
                 } catch (error) {
-                    // ネットワークレベルのエラー
+                    // ネットワークレベルのエラー (Failed to fetchなど)
                     const duration = (performance.now() - startTime).toFixed(2);
-                    return { result: 'failure', duration, status: null, error: error.message };
+                    return { result: 'failure', duration, status: null, error: 'Network Error' };
                 }
             }
             
@@ -687,7 +708,6 @@
             initializeStatuses();
             // updateUI内でinitializeResultsとupdateSummaryが呼ばれ、初期状態（detailsVisible=false、hiddenクラス適用）が設定されます。
             updateUI(currentLang);
-            // initialToggleSetupは冗長なため削除しました。
         });
     </script>
 </body>
