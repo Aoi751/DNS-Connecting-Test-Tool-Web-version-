@@ -208,49 +208,21 @@
         };
 
         let currentLang = 'ja';
+        // 初期状態は非表示
+        let detailsVisible = false; 
 
         // DoHテストに使用するプロバイダグループのリスト
-        // URLにはクエリタイプは含めず、ロジック側で付与します
         const DOH_PROVIDERS = [
-            // {url} は "https://resolver.com/dns-query" の形式
-            {
-                id: 'google',
-                name: "Google Public DNS",
-                endpoints: [{ id: 'google_default', url: "https://dns.google/resolve", label: "Default" }]
-            },
-            {
-                id: 'cloudflare',
-                name: "Cloudflare DNS",
-                endpoints: [{ id: 'cloudflare_default', url: "https://cloudflare-dns.com/dns-query", label: "Default" }]
-            },
-            {
-                id: 'quad9',
-                name: "Quad9 DNS",
-                endpoints: [{ id: 'quad9_default', url: "https://dns.quad9.net/dns-query", label: "Default" }]
-            },
-            {
-                id: 'adguard',
-                name: "AdGuard DNS",
-                endpoints: [
-                    { id: 'adguard_default', url: "https://dns.adguard.com/dns-query", label: "Default" },
-                    { id: 'adguard_family', url: "https://dns-family.adguard.com/dns-query", label: "Family Protection" }
-                ]
-            },
-            {
-                id: 'cleanbrowsing',
-                name: "CleanBrowsing",
-                endpoints: [{ id: 'cleanbrowsing_family', url: "https://doh.cleanbrowsing.org/doh/family/", label: "Family" }]
-            },
-            {
-                id: 'nextdns',
-                name: "NextDNS",
-                endpoints: [{ id: 'nextdns_general', url: "https://dns.nextdns.io/dns-query", label: "General" }]
-            },
-            {
-                id: 'controld',
-                name: "ControlD",
-                endpoints: [{ id: 'control_d_default', url: "https://freedns.controld.com/p1", label: "Default" }]
-            }
+            { id: 'google', name: "Google Public DNS", endpoints: [{ id: 'google_default', url: "https://dns.google/resolve", label: "Default" }] },
+            { id: 'cloudflare', name: "Cloudflare DNS", endpoints: [{ id: 'cloudflare_default', url: "https://cloudflare-dns.com/dns-query", label: "Default" }] },
+            { id: 'quad9', name: "Quad9 DNS", endpoints: [{ id: 'quad9_default', url: "https://dns.quad9.net/dns-query", label: "Default" }] },
+            { id: 'adguard', name: "AdGuard DNS", endpoints: [
+                { id: 'adguard_default', url: "https://dns.adguard.com/dns-query", label: "Default" },
+                { id: 'adguard_family', url: "https://dns-family.adguard.com/dns-query", label: "Family Protection" }
+            ] },
+            { id: 'cleanbrowsing', name: "CleanBrowsing", endpoints: [{ id: 'cleanbrowsing_family', url: "https://doh.cleanbrowsing.org/doh/family/", label: "Family" }] },
+            { id: 'nextdns', name: "NextDNS", endpoints: [{ id: 'nextdns_general', url: "https://dns.nextdns.io/dns-query", label: "General" }] },
+            { id: 'controld', name: "ControlD", endpoints: [{ id: 'control_d_default', url: "https://freedns.controld.com/p1", label: "Default" }] }
         ];
         
         // DoHテストのステータスを追跡するためのグローバル変数 (グループIDがキー)
@@ -348,13 +320,13 @@
                         detailColor = 'border-red-300';
                     }
 
-                    // エンドポイントの詳細リスト (初期状態では非表示)
+                    // エンドポイントの詳細リスト (detailsVisibleの状態に応じて表示/非表示を決定)
                     const endpointDetailsHtml = group.endpoints.map(ep => {
                         const epStatus = groupStatus.endpointStatuses[ep.id];
                         return generateEndpointDetailsHtml(ep, epStatus, text);
                     }).join('');
 
-                    // グループごとのカード
+                    // グループごとのカード。detailsVisibleがfalseの場合、hiddenクラスが適用される
                     return `
                         <div id="result-group-${group.id}" class="p-3 border rounded-lg bg-white ${detailColor}">
                             <div class="flex items-center justify-between mb-2">
@@ -366,8 +338,8 @@
                                     </button>
                                 </div>
                             </div>
-                            <!-- 詳細セクション -->
-                            <div id="endpoint-details-${group.id}" class="mt-3 p-2 bg-gray-50 rounded-md hidden">
+                            <!-- 詳細セクション。detailsVisibleの状態をHTML生成時に適用 -->
+                            <div id="endpoint-details-${group.id}" class="mt-3 p-2 bg-gray-50 rounded-md ${detailsVisible ? '' : 'hidden'}">
                                 <p class="font-semibold text-sm text-gray-800 mb-1">エンドポイント詳細:</p>
                                 ${endpointDetailsHtml}
                             </div>
@@ -425,6 +397,8 @@
                 `;
             }
 
+            // ... (testDohConnectivityとrunGroupedTestのロジックは変更なし) ...
+            
             /**
              * 特定のIPクエリタイプ(ipv4/ipv6)でのテストを実行し、その結果を返します。
              */
@@ -569,26 +543,20 @@
             }
             
             /**
-             * 全てのプロバイダグループのテストを順番に実行します。
+             * 全てのDoHテストを順番に実行します。
              */
             async function runAllDohTests() {
                 runAllDohTestButton.disabled = true;
+                const totalGroups = DOH_PROVIDERS.length;
                 
-                // 全ての個別ボタンを無効化
-                document.querySelectorAll('.group-test-btn').forEach(btn => btn.disabled = true);
-                
-                // 結果表示を初期化
-                initializeResults();
-
-                for (const group of DOH_PROVIDERS) {
-                    await runGroupedTest(group.id);
+                for (let i = 0; i < totalGroups; i++) {
+                    const groupId = DOH_PROVIDERS[i].id;
+                    await runGroupedTest(groupId);
                 }
-
-                runAllDohTestButton.disabled = false;
                 
-                // 全ての個別ボタンを有効化
-                document.querySelectorAll('.group-test-btn').forEach(btn => btn.disabled = false);
+                runAllDohTestButton.disabled = false;
             }
+
 
             /**
              * エンドポイントの詳細表示を最新のステータスで更新します。
@@ -608,11 +576,18 @@
                 }).join('');
 
                 detailsContainer.innerHTML = `<p class="font-semibold text-sm text-gray-800 mb-1">エンドポイント詳細:</p>${endpointDetailsHtml}`;
+                
+                // 現在のdetailsVisibleの状態に応じて、表示/非表示を強制的に再適用し、状態を維持する
+                if (detailsVisible) {
+                    detailsContainer.classList.remove('hidden');
+                } else {
+                    detailsContainer.classList.add('hidden');
+                }
             }
 
             
             /**
-             * テストサマリーセクションを更新します。
+             * テストサマリーセクションとトグルボタンを更新します。
              */
             function updateSummary() {
                 const counts = { pending: 0, success: 0, failure: 0, partial: 0 };
@@ -659,46 +634,36 @@
                 document.getElementById('statusSummary').innerHTML = summaryHtml;
                 
                 // トグルボタンを更新
-                const isHidden = document.getElementById(`endpoint-details-${DOH_PROVIDERS[0].id}`)?.classList.contains('hidden') || true;
-                
                 let buttonText;
-                if (isHidden) {
-                    buttonText = `${text.status.showDetails} (${completed} / ${total})`;
-                    toggleDetailsButton.innerHTML = `<svg class="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>${buttonText}`;
-                } else {
+                let icon;
+
+                if (detailsVisible) {
                     buttonText = `${text.status.hideDetails} (${completed} / ${total})`;
-                    toggleDetailsButton.innerHTML = `<svg class="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>${buttonText}`;
+                    icon = `<svg class="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>`;
+                } else {
+                    buttonText = `${text.status.showDetails} (${completed} / ${total})`;
+                    icon = `<svg class="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
                 }
+                toggleDetailsButton.innerHTML = `${icon}${buttonText}`;
             }
             
             /**
              * 詳細リストの表示・非表示を切り替えます。
              */
-            function toggleDetails(show) {
-                const isHidden = typeof show === 'boolean' ? !show : document.getElementById(`endpoint-details-${DOH_PROVIDERS[0].id}`)?.classList.contains('hidden') || true;
+            function toggleDetails() {
+                // 状態を反転させる
+                detailsVisible = !detailsVisible;
 
                 DOH_PROVIDERS.forEach(group => {
                     const detailsEl = document.getElementById(`endpoint-details-${group.id}`);
                     if (detailsEl) {
-                        if (isHidden) {
-                            detailsEl.classList.remove('hidden');
-                        } else {
-                            detailsEl.classList.add('hidden');
-                        }
+                        // detailsVisibleがtrueならhiddenを削除（表示）
+                        // detailsVisibleがfalseならhiddenを追加（非表示）
+                        detailsEl.classList.toggle('hidden', !detailsVisible);
                     }
                 });
                 
                 updateSummary(); // ボタンテキストを更新するために呼び出し
-            }
-            
-            // 初期の詳細リストは非表示にする
-            function initialToggleSetup() {
-                 DOH_PROVIDERS.forEach(group => {
-                    const detailsEl = document.getElementById(`endpoint-details-${group.id}`);
-                    if (detailsEl) {
-                        detailsEl.classList.add('hidden');
-                    }
-                });
             }
 
 
@@ -714,17 +679,15 @@
             });
 
             // トグルボタンは、クリック時に各プロバイダの詳細表示を一斉に切り替える
-            toggleDetailsButton.addEventListener('click', () => {
-                const isCurrentlyHidden = document.getElementById(`endpoint-details-${DOH_PROVIDERS[0].id}`)?.classList.contains('hidden') || true;
-                toggleDetails(!isCurrentlyHidden);
-            });
+            toggleDetailsButton.addEventListener('click', toggleDetails);
 
             runAllDohTestButton.addEventListener('click', runAllDohTests);
 
             // 初期化
             initializeStatuses();
+            // updateUI内でinitializeResultsとupdateSummaryが呼ばれ、初期状態（detailsVisible=false、hiddenクラス適用）が設定されます。
             updateUI(currentLang);
-            initialToggleSetup(); 
+            // initialToggleSetupは冗長なため削除しました。
         });
     </script>
 </body>
