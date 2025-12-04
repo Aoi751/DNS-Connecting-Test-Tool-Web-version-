@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNS制限テスト</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7fafc; /* Tailwind gray-100 */
+        }
+        .test-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem; /* rounded-lg */
+            font-weight: 600;
+            display: inline-block;
+            font-size: 0.875rem; /* text-sm */
+        }
+        .success {
+            background-color: #d1fae5; /* Tailwind green-100 */
+            color: #065f46; /* Tailwind green-800 */
+        }
+        .failure {
+            background-color: #fee2e2; /* Tailwind red-100 */
+            color: #991b1b; /* Tailwind red-800 */
+        }
+        .pending {
+            background-color: #fef3c7; /* Tailwind yellow-100 */
+            color: #92400e; /* Tailwind yellow-800 */
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6; /* blue-500 */
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-xl p-6 sm:p-10">
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-4 border-b-2 pb-2">
+            DNS制限テストツール
+        </h1>
+        <p class="text-gray-600 mb-8">
+            お使いのネットワーク（大学のLANなど）で、各種DNS解決方法が利用可能かテストします。
+        </p>
+
+        <!-- DoH Test Section -->
+        <section class="mb-8 border border-gray-200 rounded-lg p-4 bg-blue-50">
+            <h2 class="text-2xl font-semibold text-blue-800 mb-3 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944c6.83-2.924 10.75-2.924 12 0a11.955 11.955 0 01-11.618 17.06c-1.573.189-3.155.289-4.755.289-4.721 0-8.665-1.921-12-5.187m2.382-7.854l4.004 4.004m0 0l4.004-4.004"></path></svg>
+                DNS over HTTPS (DoH) テスト (複数プロバイダ)
+            </h2>
+            <p class="text-gray-700 mb-4">
+                ブラウザの標準的なHTTPS通信(ポート443)を利用して、複数の外部DoHサーバーに接続できるかをテストします。特定のサーバーのみブロックされているか確認できます。
+            </p>
+            
+            <button id="runDohTest" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition duration-150 shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 active:bg-blue-800">
+                全テスト実行
+            </button>
+
+            <!-- テスト結果表示エリア -->
+            <div id="testResultsContainer" class="mt-4 space-y-3">
+                <!-- 結果がJavaScriptによってここに挿入される -->
+            </div>
+            
+        </section>
+
+        <!-- Other DNS Methods Explanation -->
+        <section class="mb-8 p-4 border border-gray-200 rounded-lg bg-yellow-50">
+            <h2 class="text-2xl font-semibold text-yellow-800 mb-3 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                その他のDNS制限について
+            </h2>
+            
+            <div class="space-y-4 text-gray-700">
+                <p>
+                    <strong class="font-bold">通常のDNS (ポート53):</strong>
+                    ブラウザから直接テストすることはできませんが、外部DNSを設定した機器で名前解決を試すことで確認できます。
+                </p>
+                <p>
+                    <strong class="font-bold">DNS over TLS (DoT - ポート853):</strong>
+                    ブラウザのセキュリティ制限により、Webページから直接接続可否をテストすることは技術的に不可能です。
+                </p>
+                <p class="p-3 bg-white border border-yellow-200 rounded-md">
+                    <strong class="text-yellow-700">【ヒント】</strong>
+                    ポート53/853の制限を確認したい場合は、PCやスマートフォンでVPNサービスやカスタムDNS設定を有効にし、ウェブサイトが正常に表示されるか（名前解決ができるか）を確認するのが最も確実な方法です。
+                </p>
+            </div>
+        </section>
+
+        <footer class="text-center mt-8 pt-4 border-t border-gray-200">
+            <p class="text-sm text-gray-500">
+                これはクライアント側のJavaScriptテストであり、ネットワークの完全な状態を示すものではありません。
+            </p>
+        </footer>
+    </div>
+
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', () => {
+            const runDohTestButton = document.getElementById('runDohTest');
+            const resultsContainer = document.getElementById('testResultsContainer');
+
+            // DoHテストに使用するパブリックDNSエンドポイントのリスト
+            // example.comのAレコードを問い合わせる
+            const DOH_ENDPOINTS = [
+                { id: 'google', name: "Google Public DNS", url: "https://dns.google/resolve?name=example.com&type=A" },
+                { id: 'cloudflare', name: "Cloudflare DNS", url: "https://cloudflare-dns.com/dns-query?name=example.com&type=A" },
+                { id: 'quad9', name: "Quad9 DNS", url: "https://dns.quad9.net/dns-query?name=example.com&type=A" },
+                // 新しく追加されたエンドポイント
+                { id: 'adguard', name: "AdGuard DNS (Default)", url: "https://dns.adguard.com/dns-query?name=example.com&type=A" },
+                { id: 'cleanbrowsing', name: "CleanBrowsing (Family)", url: "https://doh.cleanbrowsing.org/doh/family/?name=example.com&type=A" }
+            ];
+
+            // 初期表示用のHTMLを生成
+            function initializeResults() {
+                resultsContainer.innerHTML = DOH_ENDPOINTS.map(endpoint => `
+                    <div id="result-${endpoint.id}" class="p-3 border rounded-lg bg-white">
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-gray-800">${endpoint.name}</span>
+                            <span id="status-${endpoint.id}" class="test-status pending">未実行</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1 break-all">${endpoint.url}</p>
+                        <p id="details-${endpoint.id}" class="text-xs text-gray-500 mt-1"></p>
+                    </div>
+                `).join('');
+            }
+
+            /**
+             * 特定のDoHエンドポイントのテストを実行します。
+             */
+            async function testDohEndpoint(endpoint) {
+                const statusElement = document.getElementById(`status-${endpoint.id}`);
+                const detailsElement = document.getElementById(`details-${endpoint.id}`);
+                const resultDiv = document.getElementById(`result-${endpoint.id}`);
+
+                // 実行中にUIを更新
+                statusElement.innerHTML = '<span class="loading-spinner mr-2"></span>テスト中...';
+                statusElement.className = 'test-status pending flex items-center';
+                detailsElement.textContent = '外部DoHサーバーにHTTPSリクエストを送信中...';
+                resultDiv.classList.remove('border-green-300', 'border-red-300');
+                resultDiv.classList.add('border-yellow-300');
+
+                const startTime = performance.now();
+                let success = false;
+                
+                try {
+                    const response = await fetch(endpoint.url, { 
+                        method: 'GET',
+                        cache: 'no-store',
+                        credentials: 'omit'
+                    });
+                    
+                    const duration = (performance.now() - startTime).toFixed(2);
+
+                    if (response.ok) {
+                        const json = await response.json();
+                        
+                        if (json && typeof json.Status === 'number') {
+                            success = true;
+                            detailsElement.textContent = `接続成功。レスポンスタイム: ${duration}ms。DNS応答ステータス: ${json.Status}`;
+                        } else {
+                            // 200 OKだがDNS応答形式ではない場合
+                            detailsElement.textContent = `応答あり（${response.status}）ですが、DNSデータとして認識できませんでした。`;
+                        }
+                    } else {
+                        // 4xx, 5xxなどのHTTPエラー
+                        detailsElement.textContent = `サーバーに到達しましたが、HTTPエラーが発生しました。ステータス: ${response.status}`;
+                    }
+                } catch (error) {
+                    // ネットワークレベルのエラー (接続拒否、タイムアウトなど)
+                    const duration = (performance.now() - startTime).toFixed(2);
+                    detailsElement.textContent = `接続失敗（ネットワークエラー）。DoH通信がブロックされている可能性が高いです。エラー: ${error.message}。時間: ${duration}ms。`;
+                    console.error(`DoHテストエラー (${endpoint.name}):`, error);
+                }
+
+                // UIを最終結果で更新
+                if (success) {
+                    statusElement.textContent = '利用可能 (成功)';
+                    statusElement.className = 'test-status success';
+                    resultDiv.classList.remove('border-yellow-300', 'border-red-300');
+                    resultDiv.classList.add('border-green-300');
+                } else {
+                    statusElement.textContent = '利用不可 (失敗)';
+                    statusElement.className = 'test-status failure';
+                    resultDiv.classList.remove('border-yellow-300', 'border-green-300');
+                    resultDiv.classList.add('border-red-300');
+                }
+            }
+            
+            /**
+             * 全てのDoHテストを順番に実行します。
+             */
+            async function runAllDohTests() {
+                runDohTestButton.disabled = true;
+                resultsContainer.innerHTML = ''; // 一旦リセット
+                initializeResults(); // 初期状態を再描画
+
+                // Promise.allで並行実行する方が効率的だが、ここでは分かりやすさのためawaitで順番に実行
+                for (const endpoint of DOH_ENDPOINTS) {
+                    await testDohEndpoint(endpoint);
+                }
+
+                runDohTestButton.disabled = false;
+            }
+
+            // 初期化とボタンクリックイベントリスナー
+            initializeResults();
+            runDohTestButton.addEventListener('click', runAllDohTests);
+        });
+    </script>
+</body>
+</html>
