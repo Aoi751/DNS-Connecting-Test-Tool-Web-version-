@@ -42,6 +42,14 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* 個別テストボタンのスタイルを更新して見やすくする */
+        .single-test-btn {
+            /* 新しいスタイル: 目立つ青色、大きいパディング、シャドウを追加 */
+            @apply px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-150 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300;
+        }
+        .single-test-btn:disabled {
+            @apply bg-gray-400 text-gray-700 cursor-not-allowed shadow-none;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-8">
@@ -63,7 +71,7 @@
                 ブラウザの標準的なHTTPS通信(ポート443)を利用して、複数の外部DoHサーバーに接続できるかをテストします。特定のサーバーのみブロックされているか確認できます。
             </p>
             
-            <button id="runDohTest" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition duration-150 shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 active:bg-blue-800">
+            <button id="runAllDohTest" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition duration-150 shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 active:bg-blue-800 mb-4">
                 全テスト実行
             </button>
 
@@ -106,7 +114,7 @@
 
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', () => {
-            const runDohTestButton = document.getElementById('runDohTest');
+            const runAllDohTestButton = document.getElementById('runAllDohTest');
             const resultsContainer = document.getElementById('testResultsContainer');
 
             // DoHテストに使用するパブリックDNSエンドポイントのリスト
@@ -115,23 +123,35 @@
                 { id: 'google', name: "Google Public DNS", url: "https://dns.google/resolve?name=example.com&type=A" },
                 { id: 'cloudflare', name: "Cloudflare DNS", url: "https://cloudflare-dns.com/dns-query?name=example.com&type=A" },
                 { id: 'quad9', name: "Quad9 DNS", url: "https://dns.quad9.net/dns-query?name=example.com&type=A" },
-                // 新しく追加されたエンドポイント
                 { id: 'adguard', name: "AdGuard DNS (Default)", url: "https://dns.adguard.com/dns-query?name=example.com&type=A" },
                 { id: 'cleanbrowsing', name: "CleanBrowsing (Family)", url: "https://doh.cleanbrowsing.org/doh/family/?name=example.com&type=A" }
             ];
 
-            // 初期表示用のHTMLを生成
+            // 初期表示用のHTMLを生成し、個別テストボタンを追加
             function initializeResults() {
                 resultsContainer.innerHTML = DOH_ENDPOINTS.map(endpoint => `
                     <div id="result-${endpoint.id}" class="p-3 border rounded-lg bg-white">
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between mb-2">
                             <span class="font-medium text-gray-800">${endpoint.name}</span>
-                            <span id="status-${endpoint.id}" class="test-status pending">未実行</span>
+                            <div class="flex items-center space-x-2">
+                                <span id="status-${endpoint.id}" class="test-status pending">未実行</span>
+                                <button id="run-single-${endpoint.id}" class="single-test-btn">
+                                    テスト実行
+                                </button>
+                            </div>
                         </div>
                         <p class="text-xs text-gray-500 mt-1 break-all">${endpoint.url}</p>
                         <p id="details-${endpoint.id}" class="text-xs text-gray-500 mt-1"></p>
                     </div>
                 `).join('');
+
+                // 個別テストボタンにイベントリスナーを設定
+                DOH_ENDPOINTS.forEach(endpoint => {
+                    const singleRunButton = document.getElementById(`run-single-${endpoint.id}`);
+                    if (singleRunButton) {
+                        singleRunButton.addEventListener('click', () => runSingleTest(endpoint.id));
+                    }
+                });
             }
 
             /**
@@ -141,8 +161,12 @@
                 const statusElement = document.getElementById(`status-${endpoint.id}`);
                 const detailsElement = document.getElementById(`details-${endpoint.id}`);
                 const resultDiv = document.getElementById(`result-${endpoint.id}`);
+                const singleRunButton = document.getElementById(`run-single-${endpoint.id}`);
 
                 // 実行中にUIを更新
+                if (singleRunButton) singleRunButton.disabled = true;
+                runAllDohTestButton.disabled = true;
+
                 statusElement.innerHTML = '<span class="loading-spinner mr-2"></span>テスト中...';
                 statusElement.className = 'test-status pending flex items-center';
                 detailsElement.textContent = '外部DoHサーバーにHTTPSリクエストを送信中...';
@@ -194,27 +218,55 @@
                     resultDiv.classList.remove('border-yellow-300', 'border-green-300');
                     resultDiv.classList.add('border-red-300');
                 }
+
+                if (singleRunButton) singleRunButton.disabled = false;
+                // 全体テストの実行中でなければ、全体テストボタンを有効化
+                if (!document.querySelector('.loading-spinner')) {
+                    runAllDohTestButton.disabled = false;
+                }
             }
             
+            /**
+             * 単一のDoHテストを実行します。
+             */
+            async function runSingleTest(id) {
+                const endpoint = DOH_ENDPOINTS.find(e => e.id === id);
+                if (endpoint) {
+                    await testDohEndpoint(endpoint);
+                }
+            }
+
             /**
              * 全てのDoHテストを順番に実行します。
              */
             async function runAllDohTests() {
-                runDohTestButton.disabled = true;
-                resultsContainer.innerHTML = ''; // 一旦リセット
-                initializeResults(); // 初期状態を再描画
+                runAllDohTestButton.disabled = true;
+                
+                // 全ての個別ボタンを無効化
+                DOH_ENDPOINTS.forEach(e => {
+                    const btn = document.getElementById(`run-single-${e.id}`);
+                    if (btn) btn.disabled = true;
+                });
+                
+                // 結果表示を初期化（テスト中表示に戻す）
+                initializeResults();
 
-                // Promise.allで並行実行する方が効率的だが、ここでは分かりやすさのためawaitで順番に実行
                 for (const endpoint of DOH_ENDPOINTS) {
                     await testDohEndpoint(endpoint);
                 }
 
-                runDohTestButton.disabled = false;
+                runAllDohTestButton.disabled = false;
+                
+                // 全ての個別ボタンを有効化
+                DOH_ENDPOINTS.forEach(e => {
+                    const btn = document.getElementById(`run-single-${e.id}`);
+                    if (btn) btn.disabled = false;
+                });
             }
 
             // 初期化とボタンクリックイベントリスナー
             initializeResults();
-            runDohTestButton.addEventListener('click', runAllDohTests);
+            runAllDohTestButton.addEventListener('click', runAllDohTests);
         });
     </script>
 </body>
