@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNS制限テスト</title>
+    <title id="appTitle">DNS制限テスト</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -54,20 +54,26 @@
 </head>
 <body class="p-4 sm:p-8">
     <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-xl p-6 sm:p-10">
-        <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-4 border-b-2 pb-2">
+        <!-- Language Switcher -->
+        <div class="flex justify-end mb-4">
+            <button id="lang-ja" class="lang-btn px-3 py-1 text-sm rounded-lg bg-blue-100 text-blue-800 font-semibold mr-2" data-lang="ja">日本語</button>
+            <button id="lang-en" class="lang-btn px-3 py-1 text-sm rounded-lg bg-gray-200 text-gray-700" data-lang="en">English</button>
+        </div>
+        
+        <h1 id="mainTitle" class="text-3xl sm:text-4xl font-bold text-gray-800 mb-4 border-b-2 pb-2">
             DNS制限テストツール
         </h1>
-        <p class="text-gray-600 mb-8">
+        <p id="descriptionText" class="text-gray-600 mb-8">
             お使いのネットワーク（大学のLANなど）で、各種DNS解決方法が利用可能かテストします。
         </p>
 
         <!-- DoH Test Section -->
         <section class="mb-8 border border-gray-200 rounded-lg p-4 bg-blue-50">
-            <h2 class="text-2xl font-semibold text-blue-800 mb-3 flex items-center">
+            <h2 id="dohTitle" class="text-2xl font-semibold text-blue-800 mb-3 flex items-center">
                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944c6.83-2.924 10.75-2.924 12 0a11.955 11.955 0 01-11.618 17.06c-1.573.189-3.155.289-4.755.289-4.721 0-8.665-1.921-12-5.187m2.382-7.854l4.004 4.004m0 0l4.004-4.004"></path></svg>
                 DNS over HTTPS (DoH) テスト (複数プロバイダ)
             </h2>
-            <p class="text-gray-700 mb-4">
+            <p id="dohDescription" class="text-gray-700 mb-4">
                 ブラウザの標準的なHTTPS通信(ポート443)を利用して、複数の外部DoHサーバーに接続できるかをテストします。特定のサーバーのみブロックされているか確認できます。
             </p>
             
@@ -84,38 +90,101 @@
 
         <!-- Other DNS Methods Explanation -->
         <section class="mb-8 p-4 border border-gray-200 rounded-lg bg-yellow-50">
-            <h2 class="text-2xl font-semibold text-yellow-800 mb-3 flex items-center">
+            <h2 id="otherDnsTitle" class="text-2xl font-semibold text-yellow-800 mb-3 flex items-center">
                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 その他のDNS制限について
             </h2>
             
             <div class="space-y-4 text-gray-700">
-                <p>
+                <p id="dns53Text">
                     <strong class="font-bold">通常のDNS (ポート53):</strong>
                     ブラウザから直接テストすることはできませんが、外部DNSを設定した機器で名前解決を試すことで確認できます。
                 </p>
-                <p>
+                <p id="dotText">
                     <strong class="font-bold">DNS over TLS (DoT - ポート853):</strong>
                     ブラウザのセキュリティ制限により、Webページから直接接続可否をテストすることは技術的に不可能です。
                 </p>
                 <p class="p-3 bg-white border border-yellow-200 rounded-md">
-                    <strong class="text-yellow-700">【ヒント】</strong>
-                    ポート53/853の制限を確認したい場合は、PCやスマートフォンでVPNサービスやカスタムDNS設定を有効にし、ウェブサイトが正常に表示されるか（名前解決ができるか）を確認するのが最も確実な方法です。
+                    <strong id="hintTitle" class="text-yellow-700">【ヒント】</strong>
+                    <span id="hintContent">ポート53/853の制限を確認したい場合は、PCやスマートフォンでVPNサービスやカスタムDNS設定を有効にし、ウェブサイトが正常に表示されるか（名前解決ができるか）を確認するのが最も確実な方法です。</span>
                 </p>
             </div>
         </section>
 
         <footer class="text-center mt-8 pt-4 border-t border-gray-200">
-            <p class="text-sm text-gray-500">
+            <p id="footerText" class="text-sm text-gray-500">
                 これはクライアント側のJavaScriptテストであり、ネットワークの完全な状態を示すものではありません。
             </p>
         </footer>
     </div>
 
     <script type="text/javascript">
+        // 言語設定の定数
+        const LANGUAGES = {
+            ja: {
+                appTitle: "DNS制限テストツール",
+                mainTitle: "DNS制限テストツール",
+                descriptionText: "お使いのネットワーク（大学のLANなど）で、各種DNS解決方法が利用可能かテストします。",
+                dohTitle: "DNS over HTTPS (DoH) テスト (複数プロバイダ)",
+                dohDescription: "ブラウザの標準的なHTTPS通信(ポート443)を利用して、複数の外部DoHサーバーに接続できるかをテストします。特定のサーバーのみブロックされているか確認できます。",
+                runAllButton: "全テスト実行",
+                otherDnsTitle: "その他のDNS制限について",
+                dns53Title: "通常のDNS (ポート53):",
+                dns53Content: "ブラウザから直接テストすることはできませんが、外部DNSを設定した機器で名前解決を試すことで確認できます。",
+                dotTitle: "DNS over TLS (DoT - ポート853):",
+                dotContent: "ブラウザのセキュリティ制限により、Webページから直接接続可否をテストすることは技術的に不可能です。",
+                hintTitle: "【ヒント】",
+                hintContent: "ポート53/853の制限を確認したい場合は、PCやスマートフォンでVPNサービスやカスタムDNS設定を有効にし、ウェブサイトが正常に表示されるか（名前解決ができるか）を確認するのが最も確実な方法です。",
+                footerText: "これはクライアント側のJavaScriptテストであり、ネットワークの完全な状態を示すものではありません。",
+                status: {
+                    pending: "未実行",
+                    testing: "テスト中...",
+                    available: "利用可能 (成功)",
+                    unavailable: "利用不可 (失敗)",
+                    runSingle: "テスト実行",
+                    detailTesting: "外部DoHサーバーにHTTPSリクエストを送信中...",
+                    detailSuccess: (duration, status) => `接続成功。レスポンスタイム: ${duration}ms。DNS応答ステータス: ${status}`,
+                    detailErrorHttp: (status) => `サーバーに到達しましたが、HTTPエラーが発生しました。ステータス: ${status}`,
+                    detailErrorDns: (status) => `応答あり（${status}）ですが、DNSデータとして認識できませんでした。`,
+                    detailErrorNetwork: (error, duration) => `接続失敗（ネットワークエラー）。DoH通信がブロックされている可能性が高いです。エラー: ${error}。時間: ${duration}ms。`
+                }
+            },
+            en: {
+                appTitle: "DNS Restriction Test Tool",
+                mainTitle: "DNS Restriction Test Tool",
+                descriptionText: "Test whether various DNS resolution methods are available on your network (e.g., university LAN).",
+                dohTitle: "DNS over HTTPS (DoH) Test (Multiple Providers)",
+                dohDescription: "Tests connectivity to multiple external DoH servers using standard HTTPS (Port 443). Helps determine if specific servers are blocked.",
+                runAllButton: "Run All Tests",
+                otherDnsTitle: "About Other DNS Restrictions",
+                dns53Title: "Traditional DNS (Port 53):",
+                dns53Content: "Cannot be tested directly from the browser, but can be checked by trying name resolution on a device configured with external DNS.",
+                dotTitle: "DNS over TLS (DoT - Port 853):",
+                dotContent: "Directly testing connectivity from a webpage is technically impossible due to browser security restrictions.",
+                hintTitle: "【Hint】",
+                hintContent: "To check restrictions on ports 53/853, the surest method is to enable a VPN service or custom DNS settings on your PC or smartphone and verify if websites load correctly (if name resolution works).",
+                footerText: "This is a client-side JavaScript test and does not represent the full state of the network.",
+                status: {
+                    pending: "Pending",
+                    testing: "Testing...",
+                    available: "Available (Success)",
+                    unavailable: "Unavailable (Failure)",
+                    runSingle: "Run Test",
+                    detailTesting: "Sending HTTPS request to external DoH server...",
+                    detailSuccess: (duration, status) => `Connection successful. Response time: ${duration}ms. DNS response status: ${status}`,
+                    detailErrorHttp: (status) => `Server reached, but HTTP error occurred. Status: ${status}`,
+                    detailErrorDns: (status) => `Response received (${status}), but not recognized as DNS data.`,
+                    detailErrorNetwork: (error, duration) => `Connection failed (Network Error). DoH communication is likely blocked. Error: ${error}. Time: ${duration}ms.`
+                }
+            }
+        };
+
+        let currentLang = 'ja';
+
         document.addEventListener('DOMContentLoaded', () => {
             const runAllDohTestButton = document.getElementById('runAllDohTest');
             const resultsContainer = document.getElementById('testResultsContainer');
+            const langButtons = document.querySelectorAll('.lang-btn');
 
             // DoHテストに使用するパブリックDNSエンドポイントのリスト
             // example.comのAレコードを問い合わせる
@@ -127,16 +196,49 @@
                 { id: 'cleanbrowsing', name: "CleanBrowsing (Family)", url: "https://doh.cleanbrowsing.org/doh/family/?name=example.com&type=A" }
             ];
 
+            // UIテキストを現在の言語に更新する関数
+            function updateUI(lang) {
+                const text = LANGUAGES[lang];
+                document.getElementById('appTitle').textContent = text.appTitle;
+                document.getElementById('mainTitle').textContent = text.mainTitle;
+                document.getElementById('descriptionText').textContent = text.descriptionText;
+                document.getElementById('dohTitle').innerHTML = `<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944c6.83-2.924 10.75-2.924 12 0a11.955 11.955 0 01-11.618 17.06c-1.573.189-3.155.289-4.755.289-4.721 0-8.665-1.921-12-5.187m2.382-7.854l4.004 4.004m0 0l4.004-4.004"></path></svg>${text.dohTitle}`;
+                document.getElementById('dohDescription').textContent = text.dohDescription;
+                runAllDohTestButton.textContent = text.runAllButton;
+                document.getElementById('otherDnsTitle').innerHTML = `<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>${text.otherDnsTitle}`;
+                
+                document.getElementById('dns53Text').innerHTML = `<strong class="font-bold">${text.dns53Title}</strong> ${text.dns53Content}`;
+                document.getElementById('dotText').innerHTML = `<strong class="font-bold">${text.dotTitle}</strong> ${text.dotContent}`;
+                document.getElementById('hintTitle').textContent = text.hintTitle;
+                document.getElementById('hintContent').textContent = text.hintContent;
+                document.getElementById('footerText').textContent = text.footerText;
+
+                // 言語ボタンのアクティブ状態を更新
+                langButtons.forEach(button => {
+                    if (button.dataset.lang === lang) {
+                        button.classList.remove('bg-gray-200', 'text-gray-700');
+                        button.classList.add('bg-blue-100', 'text-blue-800', 'font-semibold');
+                    } else {
+                        button.classList.remove('bg-blue-100', 'text-blue-800', 'font-semibold');
+                        button.classList.add('bg-gray-200', 'text-gray-700');
+                    }
+                });
+                
+                // 結果表示エリアを再初期化して、新しい言語のテキストを反映させる
+                initializeResults();
+            }
+
             // 初期表示用のHTMLを生成し、個別テストボタンを追加
             function initializeResults() {
+                const text = LANGUAGES[currentLang];
                 resultsContainer.innerHTML = DOH_ENDPOINTS.map(endpoint => `
                     <div id="result-${endpoint.id}" class="p-3 border rounded-lg bg-white">
                         <div class="flex items-center justify-between mb-2">
                             <span class="font-medium text-gray-800">${endpoint.name}</span>
                             <div class="flex items-center space-x-2">
-                                <span id="status-${endpoint.id}" class="test-status pending">未実行</span>
+                                <span id="status-${endpoint.id}" class="test-status pending">${text.status.pending}</span>
                                 <button id="run-single-${endpoint.id}" class="single-test-btn">
-                                    テスト実行
+                                    ${text.status.runSingle}
                                 </button>
                             </div>
                         </div>
@@ -158,6 +260,7 @@
              * 特定のDoHエンドポイントのテストを実行します。
              */
             async function testDohEndpoint(endpoint) {
+                const text = LANGUAGES[currentLang];
                 const statusElement = document.getElementById(`status-${endpoint.id}`);
                 const detailsElement = document.getElementById(`details-${endpoint.id}`);
                 const resultDiv = document.getElementById(`result-${endpoint.id}`);
@@ -167,9 +270,9 @@
                 if (singleRunButton) singleRunButton.disabled = true;
                 runAllDohTestButton.disabled = true;
 
-                statusElement.innerHTML = '<span class="loading-spinner mr-2"></span>テスト中...';
+                statusElement.innerHTML = `<span class="loading-spinner mr-2"></span>${text.status.testing}`;
                 statusElement.className = 'test-status pending flex items-center';
-                detailsElement.textContent = '外部DoHサーバーにHTTPSリクエストを送信中...';
+                detailsElement.textContent = text.status.detailTesting;
                 resultDiv.classList.remove('border-green-300', 'border-red-300');
                 resultDiv.classList.add('border-yellow-300');
 
@@ -190,30 +293,30 @@
                         
                         if (json && typeof json.Status === 'number') {
                             success = true;
-                            detailsElement.textContent = `接続成功。レスポンスタイム: ${duration}ms。DNS応答ステータス: ${json.Status}`;
+                            detailsElement.textContent = text.status.detailSuccess(duration, json.Status);
                         } else {
                             // 200 OKだがDNS応答形式ではない場合
-                            detailsElement.textContent = `応答あり（${response.status}）ですが、DNSデータとして認識できませんでした。`;
+                            detailsElement.textContent = text.status.detailErrorDns(response.status);
                         }
                     } else {
                         // 4xx, 5xxなどのHTTPエラー
-                        detailsElement.textContent = `サーバーに到達しましたが、HTTPエラーが発生しました。ステータス: ${response.status}`;
+                        detailsElement.textContent = text.status.detailErrorHttp(response.status);
                     }
                 } catch (error) {
                     // ネットワークレベルのエラー (接続拒否、タイムアウトなど)
                     const duration = (performance.now() - startTime).toFixed(2);
-                    detailsElement.textContent = `接続失敗（ネットワークエラー）。DoH通信がブロックされている可能性が高いです。エラー: ${error.message}。時間: ${duration}ms。`;
+                    detailsElement.textContent = text.status.detailErrorNetwork(error.message, duration);
                     console.error(`DoHテストエラー (${endpoint.name}):`, error);
                 }
 
                 // UIを最終結果で更新
                 if (success) {
-                    statusElement.textContent = '利用可能 (成功)';
+                    statusElement.textContent = text.status.available;
                     statusElement.className = 'test-status success';
                     resultDiv.classList.remove('border-yellow-300', 'border-red-300');
                     resultDiv.classList.add('border-green-300');
                 } else {
-                    statusElement.textContent = '利用不可 (失敗)';
+                    statusElement.textContent = text.status.unavailable;
                     statusElement.className = 'test-status failure';
                     resultDiv.classList.remove('border-yellow-300', 'border-green-300');
                     resultDiv.classList.add('border-red-300');
@@ -264,8 +367,19 @@
                 });
             }
 
-            // 初期化とボタンクリックイベントリスナー
-            initializeResults();
+            // 言語切り替えボタンのイベントリスナー
+            langButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const newLang = button.dataset.lang;
+                    if (newLang !== currentLang) {
+                        currentLang = newLang;
+                        updateUI(currentLang);
+                    }
+                });
+            });
+
+            // 初期化
+            updateUI(currentLang);
             runAllDohTestButton.addEventListener('click', runAllDohTests);
         });
     </script>
