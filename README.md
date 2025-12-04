@@ -1,2 +1,3 @@
 # DNS-Connecting-Test-Tool-Web-version-
 This tool can check dns connecting and more on your pc/smartphone.
+https://aoi751.github.io/DNS-Connecting-Test-Tool-Web-version-/
